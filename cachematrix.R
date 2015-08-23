@@ -6,7 +6,7 @@
 ## Scope:    
 ## Address the computational intensive task of matrix inversion by creation
 ## of a closure mantaining both matrix and its inverse, once calculated, so
-## that inverse matrix recalculation can be avoided.
+## that inverse matrix recalculation can be later avoided.
 ##
 ## Description:
 ## Creation of a couple of functions, which can be used in combination to 
@@ -16,8 +16,9 @@
 ## of matrix inversion and identity matrix concepts.
 ##
 ## Notes:
-## No check is currently performed on original matrix, which must be square
-## and invertible.
+## No check is currently performed on original matrix, with respect to the 
+## requirements of being square and invertible (determinant different from 0,
+## which otherwise would result in a singular matrix).
 
 ## Create a special 'extended matrix' object, storing in cache both matrix
 ## and its inverse (if computed, otherwise set to NULL).
@@ -41,8 +42,8 @@ makeCacheMatrix <- function(x = matrix()) {
        getInv = getInv)
 }
 
-## Compute or return (from cache, if available) the inverse of 
-## the special matrix object passed in as an argument
+## Compute (and set to cache) or return (from cache, if already computed)
+## the inverse of the special matrix object passed in as an argument
 ##
 ## Args:
 ##   x: a makeCacheMatrix object, storing a matrix
@@ -50,7 +51,9 @@ makeCacheMatrix <- function(x = matrix()) {
 ##   The inverse of the matrix stored to arg 'x' object
 ## Notes:
 ##   The function does not check that matrix is square nor it is
-##   invertible
+##   invertible. The best option to implement such a functionality
+##   will be to trap errors arising from solve function call
+##  
 cacheSolve <- function(x, ...) {
   inv <- x$getInv()                # Access matrix inverse (if calculated)
   if(!is.null(inv)) {              # Return cached inverse (if calculated)
@@ -63,17 +66,22 @@ cacheSolve <- function(x, ...) {
   inv                              # Returns inverse matrix
 }
 
-## Check above functions working by checking Identity matrix resulting from
-## multiplication of matrix and its inverse
+## Check above functions working by checking that identity matrix I would
+## result from the multiplication of matrix and its inverse
+
+# Very simple 2x2 matrix inversion
 m <- matrix(c(2,6,3,1),2,2)
 cm <- makeCacheMatrix(m)
 inv <- cacheSolve(cm)
+inv <- cacheSolve(cm)  # Just to chack matrix is returned from cache this second call
 I <- m %*% inv   # Matrix multiplication should result in the Identity matrix
-print(I)
+print(I)         
 
+# More challange matrix inversion, useful for further analysis of computation times
 m <- matrix(runif(1000000,0,100),1000,1000)
 head(m)
 cm <- makeCacheMatrix(m)
 inv <- cacheSolve(cm)
 I <- m %*% inv   # Matrix multiplication should result in the Identity matrix
 print(head(I))
+
